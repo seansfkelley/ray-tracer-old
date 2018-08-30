@@ -1,0 +1,48 @@
+To do:
+
+RectPrism::collidesWithBox causes segfaults. Is it letting too many pass? Using 'return true' doesn't cause segfaults, but DOES cause an
+infinite recursive loop. Perform test with LOTS of spheres instead, to see if sheer volume causes the problems (Sphere::collidesWithBox) 
+seems to work. Why a seg fault? The code is in a const function and should never access uninitialized things.
+
+Before benchmarking, have server-side timer to track time spent with more than zero clients (possibly break up into groups based on number of 
+clients and then do number crunching, i.e., col/sec with X clients, etc.).
+Server needs to do load balancing, and not a single column at a time (and see if async reads on the client actually work! Need big examples.)
+  -- How necessary is multiple-column load balancing? Benchmark with multiple computers (including over the internet, not just LAN) by running
+     an example with single-column distribution and one with initial setup and nothing else (not robust, but for testing purposes, acceptable).
+Option to be silent except for critical messages (in this case, only unexpected shutdowns so the user can restart).
+Compressing raytracer and image data -- Can a binary representation be used?
+  -- Alternately, if column-based approach stays, the client can be significantly simplified to exchange each rendered column for a new column
+     number. This way, server always has the latest data and a client disconnect is less bad, and less data is sent in one piece.
+Should best compression always be used?
+Should Collisions keep a reference to Materials instead of Shapes?
+Backface culling -- cannot start inside an object!
+Cache results for ray-object intersections -- faster than sorting the candidate list and removing duplicates -- put objects in a set?
+Speed up kd-tree
+ -- Make it iterative
+ -- Look at Havran's traversal
+ -- Simplify as many of the calculations as possible 
+ -- Make the collision detection in-line how to avoid color-colliding far children?
+Low-level optimizations: reduce divisions, reduce data storage, reduce inefficient data structures (stop using vectors for everything, etc.)
+Test runtime with more randomly-distributed objects.
+Server should track time each client thread spent connected (in real seconds) and how long (in real seconds) the entire process took.
+Right-associate all references (&).
+Fast ray-box intersection -- will speed up kd-tree traversal noticeably.
+
+Planes and triangles
+Photon mapping
+Texture mapping
+Depth of field
+Global illumination
+Subsurface scattering
+Fourier surfaces
+Volumetric fog
+WYSIWYG OpenGL scene editor
+Urban legibility - pixel city
+Marching cubes
+Beer's Law
+
+Spatial locality of kd-tree children? (Both trees?) Create them adjacent, then fill them.
+Objects can access private members of other objects of the same type: mark default constuctors and other such functions that shouldn't
+be used by client code as private!
+
+Rebuild PhotonMap to use a vector<Photon> instead of Photon*. Photon* is the bane of my fucking existence.

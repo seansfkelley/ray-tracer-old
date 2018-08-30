@@ -1,0 +1,31 @@
+#parameters
+400 400
+.5
+1
+200 100 500
+0 0 0
+150
+0
+0.2 0.2 0.2
+0.4325 0.725 0.9
+
+#lights
+1
+300 0 200 0 1 1 1 1
+
+#materials
+5
+red 1 0 0 0.8 0 0 0 0 0
+green 0 1 0 0.8 0 0 0 0 0
+blue 0 0 1 0.8 0 0 0 0 0
+grey 0.5 0.5 0.5 0.8 0 0 0 0 0
+reflective 0.8 0.8 0.8 0.5 0.75 0.9 0 50 0
+
+#shapes
+6
+sphere red -75 -75 0 75
+sphere green 0 0 0 75
+sphere blue 75 75 0 75
+rectprism grey -150 -150 -75 150 -150 150
+rectprism grey 0 150 -75 150 150 150
+rectprism reflective -500 -500 -500 1000 1000 1000

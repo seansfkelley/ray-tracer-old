@@ -1,0 +1,271 @@
+<html>
+<head>
+    <title>Graphics Final Project: Photon Mapping</title>
+    
+    <style>
+    .main{
+        width:600px;
+        margin-left:auto;
+        margin-right:auto;
+        font-family:Arial;
+    }
+    
+    .section{
+        font-size:10pt;
+    }
+    
+    .image{
+        width:400px;
+        margin-left:auto;
+        margin-right:auto;
+        font-size:8pt;
+    }
+    
+    .signature{
+        font-size:12pt;
+        text-align:right;
+    }
+    </style>
+</head>
+<body>
+    
+    <div class="main">
+                
+        <h3>Graphics Final Project: Photon Mapping</h4>
+        
+        <h4>Photon Mapping</h4>
+        
+        <div class="section">
+            &nbsp;&nbsp;&nbsp;&nbsp;Ray tracing was invented as a way to render images with complex, high-quality light interactions. The simplest 
+            implementations of ray tracers perform admirably when it comes to these interactions: they generate pixel-perfect shadows, reflection, 
+            refraction, etc. But real life is not so pixel-perfect. To this end, many techniques have been devised in order to roughen up ray traced 
+            images and lend them a sense of realism.
+        
+            <br><br>
+        
+            &nbsp;&nbsp;&nbsp;&nbsp;One such technique is photon mapping, invented by Henrik Jensen (of UC San Diego). Photon mapping aims to emulate
+            the behavior of light more closely by creating photons at light sources and sending them around the scene, storing the interaction each
+            photon has each time it bounces off a surface. Photon mapping can be used to create many different lighting effects, but I used it only for 
+            <b>global illumination</b> and <b>caustics</b>.
+        
+            <br><br>
+        
+            &nbsp;&nbsp;&nbsp;&nbsp;<b>Global illumination</b>, also called <b>indirect illumination</b>, refers to the light in a scene that is not 
+            direct from a light source, i.e., it has bounced off at least one surface. In practice, this allows surfaces of varying reflectivity to 
+            propagate light around a scene and change its color as it goes based on their surface color. Most noticeably, this results in color 
+            bleeding between two adjacent surfaces. <b>Caustics</b> is the name for the effect by which refractive materials bend and refocus light, 
+            creating patterns of less and more light (such as when you shine a light through a magnifying glass) on the underlying surfaces. 
+        </div>
+        
+        <br>
+        
+        <h4>Related Work</h4>
+        
+        <div class="section">
+            &nbsp;&nbsp;&nbsp;&nbsp;Jensen was the originator of the technique and as such, his two listed papers here were my main resources. He
+            describes the algorithms along with some recommended implementation techniques. He makes a lot of references to the Ward paper, and
+            though that's for an optimization technique (irradiance caching; mentioned later) I have not implemented I still found the paper useful. 
+            Lastly, Havran's paper was useful for another optimization technique (kd-trees) that I used heavily.
+            
+            <ul>
+                <li type="circle">Jansen, H.W. (1996). Global Illumination using Photon Maps.</li>  
+                <li type="circle">Jansen, H.W., Jarosz, W., Donner, C. (2008). Advanced Global Illumination using Photon Mapping.</li>
+                <li type="circle">Ward, G.J., Heckbert, P.S. (1992). Irradiance Gradients.</li>
+                <li type="circle">Havran, V. (2000). Heuristic Ray Shooting Algorithms.</li>
+            </ul>
+        </div>
+        
+        <br>
+        
+        <h4>Design</h4>
+        
+        <div class="section">
+            &nbsp;&nbsp;&nbsp;&nbsp;Photon mapping turns ray tracing into a two-stage process. First, photons are fired from each light source into
+            the scene, and their interactions/bounces with different objects are stored in the photon map. The idea here is to have a 3D map of where
+            the light energy in the scene is going. In the second stage, ray tracing is performed as normal. An extra lighting calculation is added
+            to account for possible global illumination or caustics at the point by querying the photon map.
+            
+            <br><br>
+            
+            &nbsp;&nbsp;&nbsp;&nbsp;Photon mapping is, almost by definition, very inefficient, since one fires photons randomly throughout a scene 
+            in hopes that they will be useful during the later ray tracing stage. Surprisingly, it's not the photon map creation that's a performance
+            problem, but rather using the photon map during the second stage. (I've actually already glossed over at least one optimization technique
+            in this description that I will discuss as future work). Luckily, "correctness" is not of particular concern when it comes to design,
+            since ray tracing attempts only to approximate reality rather than get it right. As such, most of my effort was directed towards optimizing
+            the major performance bottleneck: querying the photon maps.
+            
+            <br><br>
+            
+            &nbsp;&nbsp;&nbsp;&nbsp;Jansen recommends, and I used, a kd-tree for implementing photon maps. Put simply, a kd-tree is a type of
+            spatial-indexing data structure that is able to take irregularly organized points in space (in this case, points photons bounce of off
+            while moving around the scene) and produce a balanced tree to store them, dropping access times from O(n) to O(lg n) (as an aside, I also
+            used a kd-tree to index the shapes present in the scene and it produced the largest speedup of any optimizations I tried).
+            
+            <br><br>
+            
+            &nbsp;&nbsp;&nbsp;&nbsp;Jansen is also a big advocate of other optimizations such as Ward's irradiance caching (dramatically reducing the
+            number of times the photon maps are queried), but I chose not to implement these due to their relative complexity and the fact that I
+            had managed to get run times low enough for my test scenes.
+        </div>
+        
+        <h4>Features and Results</h4>
+        
+        <div class="section">
+            &nbsp;&nbsp;&nbsp;&nbsp;The following 12 pictures illustrate all the features I have implemented so far in the program, arranged in
+            increasing order of complexity (approximately; this is a subjective measure) and culminating with global illumination and caustics, which
+            were my focus for this project. The scene is the same each time.
+            
+            <br><br>
+            
+            <div class="image">
+                <img src="Progression/1 - collision only.png">
+                <br>
+                <b>Fig. 1</b>: Collision with objects produces their material's default color. This is about as simple as a ray tracer can get.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/2 - ambient.png">
+                <br>
+                <b>Fig. 2</b>: Lighting with only the ambient light term. Ambient light is a cheap workaround for proper global illumination. I chose
+                to leave it in because I have not refined global illumination enough to compensate for the absence of it entirely.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/3 - shadows.png">
+                <br>
+                <b>Fig. 3</b>: Added shadow rays and their associated lighting calculations. Not shown: support for multiple lights. The single point
+                light source in this scene is in the center of the ceiling and produces a fairly strong, purely-white light.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/4 - attenuation.png">
+                <br>
+                <b>Fig. 4</b>: Light attenuation helps distinguish which parts of the scene are far away from the light. The effect seen here is extreme;
+                there are built-in parameters that can strengthen or weaken the effect.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/5 - diffuse.png">
+                <br>
+                <b>Fig. 5</b>: Diffuse lighting makes the faces of objects that face away from a light source darker, producing a nice fading effect
+                between the light and dark sides of the spheres.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/6 - specular.png">
+                <br>
+                <b>Fig. 6</b>: Specular highlights make the spheres appear shiny. The two highlights are the only elements of the scene that have changed,
+                but they have a huge effect on what we perceive the spheres to be made of.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/7 - reflection.png">
+                <br>
+                <b>Fig. 7</b>: Pixel-perfect reflection gives the left sphere an appearance of being metallic.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/8 - refraction.png">
+                <br>
+                <b>Fig. 8</b>: Similarly, pixel-perfect refraction gives the right sphere an appearance of being glassy. Notice that it also has a very
+                slight reflective effect.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/9 - soft shadows.png">
+                <br>
+                <b>Fig. 9</b>: Replacing the point light source with a square one causes the shadows to become more diffuse and realistic. Each shadow
+                pixel is now computed using 16 samples instead of 1.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/10 - antialiasing.png">
+                <br>
+                <b>Fig. 10</b>: Anti-aliasing via supersampling gives the whole scene a much smoother, appealing look. Each pixel is the average of 16
+                rays.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/11 - caustics.png">
+                <br>
+                <b>Fig. 11</b>: Caustics lend the glassy sphere a much more realistic appearance. Notice that there are two focus areas: one white one
+                caused directly by the light, and one red one caused by indirect lighting interacting with the sphere.
+            </div>
+            
+            <br>
+            
+            <div class="image">
+                <img src="Progression/12 - indirect illumination.png">
+                <br>
+                <b>Fig. 12</b>: Global illumination gives the grey walls a subtle tinge from its neighbors.
+            </div>
+            
+            <br><br>
+            
+            &nbsp;&nbsp;&nbsp;&nbsp;Two features which are not visible here but are crucial to rendering complex scenes in reasonable times are support
+            for networking multiple computers to work on one image and multithreading the process on each client computer.
+            
+            <br><br>
+            
+            &nbsp;&nbsp;&nbsp;&nbsp;My work for this project (culminating in the production of images like figures 11 and 12) led to mixed results.
+            There is certainly some level of global illumination and caustics, but compared to many images on the internet the effects seemed weak
+            and spotty -- there's a lot of noise in the lighting produced by the photon maps which is not seen in many example images (such as those
+            in Jensen's papers on the subject). It seems that I have, to some extent, misunderstood some of the calculations involved in using photon
+            maps and ended up with something close but not quite right.
+            
+            <br><br>
+            
+            &nbsp;&nbsp;&nbsp;&nbsp;Luckily, most of the groundwork for expanding upon photon mapping has already been laid in my implementation of
+            the kd-tree and photon shooting stage. Actually using the photon maps during the second stage is relatively easy and is certainly where
+            the problem lies.
+        </div>
+        
+        <br>
+        
+        <h4>Future Work</h4>
+
+        <div class="section">
+            &nbsp;&nbsp;&nbsp;&nbsp;First and foremost, I fully intend to repair my global illumination and caustics lighting calculations. I did
+            not realize until too late that the calculations were not as I had understood. I would have liked to have a more correct version of the
+            algorithm to show, but unfortunately the literature is quite involved and I didn't have the time nor the background for it.
+            
+            <br><br>
+            
+            &nbsp;&nbsp;&nbsp;&nbsp;Moving along to features that I simply have not implemented: there are an innumerable number of extensions to
+            a ray tracer, because a ray tracer provides an excellent framework to connect many different specialized techniques. There are several
+            that have caught my interest in particular and I intend to implement them once global illumination and caustics are working correctly. 
+            There are, of course, many optimizations that can be made to the photon mapping algorithm at both an algorithmic level (e.g. the 
+            aforementioned  irradiance caching, or a technique called "importance sampling" that tries to intelligently fire photons to areas of the 
+            scene where they will be most helpful) and implementation level (e.g. reducing the memory footprint for faster access). Among new features 
+            I would like to support are texture mapping, more primitive shapes (perhaps complex arbitrary surfaces) and depth of field (focal blur).
+        </div>
+        
+        <br><br>
+        
+        <div class="signature">
+            Sean Kelley
+        </div>
+        
+    </div>
+</body>
+</html>

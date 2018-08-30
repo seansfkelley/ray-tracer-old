@@ -1,0 +1,78 @@
+All lines before the #parameters tag are treated as comments. Anything after is interpreted as input data.
+The data must be well-formatted! Extra whitespaces are the only allowable kind of extraneous characters. 
+
+Name                    Input Type              Notes
+---------------------------------------------------------------------------------------------
+[#parameters]
+image resolution        2 integers              > 0
+scaling factor          1 real                  "real world" units per pixel on the grid; negative values cause undefined behavior; "zoom in" by setting it < 1
+antialias samples       1 integer               > 0; runtime increases quadratically (default = 1)
+eye                     3 reals                 spatial coordinates*
+focus                   3 reals                 spatial coordinates; a.k.a. target*
+focal length            1 real                  distance from eye towards focus the pixel grid
+rotation                1 real                  rotation of the camera, clockwise with respect to (0, 1, 0) and the direction the camera is facing
+photons                 1 integer               >= 0
+ambient light           3 reals                 r g b; on [0, 1]
+background color        3 reals                 r g b; on [0, 1]
+
+[#lights]
+number of lights        1 integer               >= 0
+light_1                 6 reals                 x y z size samples dr dg db; components on [0, 1]; size >= 0; samples > 0 (samples increase runtime quadratically)
+...
+light_n
+
+[#materials]
+number of materials     1 integer               > 0
+materials_1             1 string, 9 reals       name r g b diffuse specular refl refr shiny ior; name must be less than 128 characters; r/g/b/refl/trans on [0, 1]
+...
+materials_n
+
+[#shapes]
+number of shapes        1 integer               >= 0
+shape_1                 varies                  see shape type list below
+...
+shape_n
+
+Allowable shape types:
+sphere material-name x y z radius
+rectprism material-name x y z size-x size-y size-z
+
+*If these form a line parallel to the y-axis, the program will not work.
+
+
+
+#parameters
+400 400
+.25
+1
+278 273 -800
+278 273 0
+150
+0
+10000
+0.2 0.2 0.2
+0 0 0
+
+#lights
+1
+278 548.7 279.6 100 1 0.8 0.8 0.8
+
+#materials
+7
+white 0.94 0.92 0.85 0.5 0 0 0 0 0
+red 0.72 0.071 0.068 0.5 0 0 0 0 0
+green 0.22 0.52 0.22 0.5 0 0 0 0 0
+red2 1 0 0 0.8 0 0 0 0 0
+blue 0 0 1 0.8 0 0 0 0 0
+reflective 1 1 1 0.1 0.9 0.9 0 100 0
+refractive 1 1 1 0.1 0.9 0 0.9 100 1.52
+
+#shapes
+7
+rectprism white 0 0 0 556 -1 559.2
+rectprism white 0 548.8 0 556 1 559.2
+rectprism white 0 0 559.2 556 548.8 1
+rectprism red2 0 0 0 1 548.8 559.2
+rectprism blue 556 0 0 -1 548 559.2
+sphere refractive 150 75 150 75
+sphere reflective 400 75 250 75
